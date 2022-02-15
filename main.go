@@ -12,14 +12,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-
-	"github.com/joshdk/docker-retag/arguments"
 	"strings"
+
+	"github.com/docker/cli/cli/config"
+
+	"github.com/yxd-ym/docker-retag/arguments"
 )
 
 const (
-	dockerUsernameEnv = "DOCKER_USER"
-	dockerPasswordEnv = "DOCKER_PASS"
+	defaultIndexServer = "https://index.docker.io/v1/"
 )
 
 func main() {
@@ -38,15 +39,18 @@ func mainCmd(args []string) error {
 		return err
 	}
 
-	username, found := os.LookupEnv(dockerUsernameEnv)
-	if !found {
-		return errors.New(dockerUsernameEnv + " not found in environment")
+	cf, err := config.Load(config.Dir())
+	if err != nil {
+		return err
 	}
 
-	password, found := os.LookupEnv(dockerPasswordEnv)
-	if !found {
-		return errors.New(dockerPasswordEnv + " not found in environment")
+	ac, ok := cf.AuthConfigs[defaultIndexServer]
+	if !ok {
+		return errors.New("no auth found")
 	}
+
+	username := ac.Username
+	password := ac.Password
 
 	token, err := login(repository, username, password)
 	if err != nil {
