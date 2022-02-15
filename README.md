@@ -1,12 +1,11 @@
-[![CircleCI][circleci-badge]][circleci-link]
 [![Go Report Card][go-report-card-badge]][go-report-card-link]
 [![License][license-badge]][license-link]
-[![Github downloads][github-downloads-badge]][github-release-link]
-[![GitHub release][github-release-badge]][github-release-link]
 
 # Docker Retag
 
 🐳 Retag an existing Docker image without the overhead of pulling and pushing
+
+This is a fork of https://github.com/joshdk/docker-retag . Enhanced with docker integration.
 
 ## Motivation
 
@@ -23,27 +22,19 @@ This tool uses the [Docker Hub API](https://docs.docker.com/registry/spec/api/) 
 You can use `go get` to install this tool by running:
 
 ```bash
-$ go get -u github.com/joshdk/docker-retag
-```
-
-### Precompiled binary
-
-Alternatively, you can download a static Linux [release][github-release-link] binary by running:
-
-```bash
-$ wget -q https://github.com/joshdk/docker-retag/releases/download/0.0.2/docker-retag
-$ sudo install docker-retag /usr/bin
+$ go get -u github.com/yxd-ym/docker-retag
 ```
 
 ## Usage
 
 ### Setup
 
-Since `docker-retag` communicates with the [Docker Hub](https://hub.docker.com/) API, you must first export your account credentials into the working environment. These are the same credentials that you would use during `docker login`.
+Since `docker-retag` communicates with the [Docker Hub](https://hub.docker.com/) API, it will use the credential of your docker config.
+Use docker login to login to dockerhub first.
 
 ```bash
-$ export DOCKER_USER='joshdk'
-$ export DOCKER_PASS='hunter2'
+$ docker login
+# Use your login credentials to login
 ```
 
 The credentials must have both pull and push access for the Docker repository you are retagging.
@@ -93,13 +84,8 @@ In all cases, the image and source reference **must** already exist in Docker Hu
 
 This library is distributed under the [MIT License][license-link], see [LICENSE.txt][license-file] for more information.
 
-[circleci-badge]:         https://circleci.com/gh/joshdk/docker-retag.svg?&style=shield
-[circleci-link]:          https://circleci.com/gh/joshdk/docker-retag/tree/master
-[github-downloads-badge]: https://img.shields.io/github/downloads/joshdk/docker-retag/total.svg
-[github-release-badge]:   https://img.shields.io/github/release/joshdk/docker-retag.svg
-[github-release-link]:    https://github.com/joshdk/docker-retag/releases/latest
-[go-report-card-badge]:   https://goreportcard.com/badge/github.com/joshdk/docker-retag
-[go-report-card-link]:    https://goreportcard.com/report/github.com/joshdk/docker-retag
-[license-badge]:          https://img.shields.io/github/license/joshdk/docker-retag.svg
-[license-file]:           https://github.com/joshdk/docker-retag/blob/master/LICENSE.txt
+[go-report-card-badge]:   https://goreportcard.com/badge/github.com/yxd-ym/docker-retag
+[go-report-card-link]:    https://goreportcard.com/report/github.com/yxd-ym/docker-retag
+[license-badge]:          https://img.shields.io/github/license/yxd-ym/docker-retag.svg
+[license-file]:           https://github.com/yxd-ym/docker-retag/blob/master/LICENSE.txt
 [license-link]:           https://opensource.org/licenses/MIT
