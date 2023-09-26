@@ -23,6 +23,15 @@ const (
 	defaultIndexServer = "https://index.docker.io/v1/"
 )
 
+const (
+	contentTypeManifest     = "application/vnd.docker.distribution.manifest.v2+json"
+	contentTypeManifestList = "application/vnd.docker.distribution.manifest.list.v2+json"
+)
+
+const (
+	acceptValue = contentTypeManifest + ", " + contentTypeManifestList
+)
+
 func main() {
 	if err := mainCmd(os.Args); err != nil {
 		fmt.Fprintf(os.Stderr, "docker-retag: %s\n", err.Error())
@@ -57,12 +66,12 @@ func mainCmd(args []string) error {
 		return errors.New("failed to authenticate: " + err.Error())
 	}
 
-	manifest, err := pullManifest(token, repository, oldTag)
+	contentType, manifest, err := pullManifest(token, repository, oldTag)
 	if err != nil {
 		return errors.New("failed to pull manifest: " + err.Error())
 	}
 
-	if err := pushManifest(token, repository, newTag, manifest); err != nil {
+	if err := pushManifest(token, repository, newTag, contentType, manifest); err != nil {
 		return errors.New("failed to push manifest: " + err.Error())
 	}
 
@@ -119,7 +128,7 @@ func login(repo string, username string, password string) (string, error) {
 	return data.Token, nil
 }
 
-func pullManifest(token string, repository string, tag string) ([]byte, error) {
+func pullManifest(token string, repository string, tag string) (string, []byte, error) {
 	var (
 		client = http.DefaultClient
 		url    = "https://index.docker.io/v2/" + repository + "/manifests/" + tag
@@ -127,30 +136,35 @@ func pullManifest(token string, repository string, tag string) ([]byte, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+	req.Header.Set("Accept", acceptValue)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(resp.Status)
+		return "", nil, errors.New(resp.Status)
+	}
+
+	contentType := resp.Header.Get("content-type")
+	if contentType != contentTypeManifest && contentType != contentTypeManifestList {
+		return "", nil, fmt.Errorf("invalid content type: [%s]", contentType)
 	}
 
 	bodyText, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	return bodyText, nil
+	return contentType, bodyText, nil
 }
 
-func pushManifest(token string, repository string, tag string, manifest []byte) error {
+func pushManifest(token string, repository string, tag string, contentType string, manifest []byte) error {
 	var (
 		client = http.DefaultClient
 		url    = "https://index.docker.io/v2/" + repository + "/manifests/" + tag
@@ -162,7 +176,7 @@ func pushManifest(token string, repository string, tag string, manifest []byte) 
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-type", "application/vnd.docker.distribution.manifest.v2+json")
+	req.Header.Set("Content-type", contentType)
 
 	resp, err := client.Do(req)
 	if err != nil {
