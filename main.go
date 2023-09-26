@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -98,7 +98,7 @@ func login(repo string, username string, password string) (string, error) {
 		return "", errors.New(resp.Status)
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
+	bodyText, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
@@ -142,7 +142,7 @@ func pullManifest(token string, repository string, tag string) ([]byte, error) {
 		return nil, errors.New(resp.Status)
 	}
 
-	bodyText, err := ioutil.ReadAll(resp.Body)
+	bodyText, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
